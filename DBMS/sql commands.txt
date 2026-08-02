@@ -1,0 +1,102 @@
+go to windows
+start SQL Plus
+user name: scott
+password: tiger
+
+SQL>clear screen
+SQL> create table student90
+(rollno number(3), sname varchar(20));
+SQL - Structured Query Language
+Table created...
+SQL> DESCRIBE STUDENT90;
+
+SQL> alter table student90
+add (course varchar(10));
+
+SQL> DESCRIBE STUDENT90;
+SQL> insert into student90 values(101,'Smith','BCA');
+SQL> insert into student90 values(102,'Ram','MCA');
+SQL> commit;
+SQL> select * from STUDENT90;
+SQL> update STUDENT90 set course='BCA H' where rollno=101;
+SQL> select * from STUDENT90;
+SQL> commit;
+SQL> delete from STUDENT90 where rollno=101;
+SQL> select * from emp where deptno=10;
+SQL> select * from emp where deptno<>10;
+SQL> select * from emp where sal>2000;
+SQL> select * from emp where sal between 1000 and 2000;
+SQL> select * from emp where comm is null;
+SQL> select * from emp where deptno=10;
+SQL> select * from emp where ENAME LIKE 'S%';
+SQL> select * from emp where ENAME LIKE '%a';
+SQL> select * from emp where ENAME LIKE 'S_O%';
+SQL> select * from emp where comm is not null;
+SQL> select * from emp where sal>2000 and deptno=10;
+SQL> select hiredate from emp;
+SQL> select to_char(hiredate,'dd/mm/yyyy') from emp;
+SQL> select to_char(hiredate,'dd/month/year') from emp;
+SQL> select to_char(sysdate,'dd-mm-yy') from dual;
+SQL> select upper(ename) from emp;
+SQL> select lower(ename) from emp;
+SQL> select initcap(ename) from emp;
+SQL> select sqrt(625) from dual;
+SQL> select power(2,4) from dual;
+SQL> select round(24.657,2) from dual;
+SQL> select trunc(24.657,2) from dual;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

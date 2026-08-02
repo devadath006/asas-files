@@ -1,0 +1,69 @@
+from google.colab import drive
+drive.mount('/content/drive')
+
+
+import pandas as pd
+newdata=pd.read_csv('/content/sample_data/Monthly_Expenses.csv')
+
+newdata
+
+
+
+newdata.head(2)
+newdata.tail()
+newdata.head(10)
+newdata.tail(7)
+newdata.info()
+
+
+myexp=newdata.Expenses
+myexp
+
+newdata.columns
+
+newdata = newdata.rename(columns={'Month ': 'Month'})
+
+m=newdata.Month
+m
+
+myexp.mean()
+myexp.median()
+myexp.mode()
+myexp.min()
+myexp.max()
+myexp.std()
+myexp.var()
+myexp.quantile(0.25)
+myexp.kurt()
+myexp.describe()
+
+
+#In the above code the keys of the dict become the DataFrame columns:The default action of dataframe is like that.
+data = {'col_1': [3, 2, 1, 0], 'col_2': ['a', 'b', 'c', 'd']}
+pd.DataFrame.from_dict(data)
+
+#Specify orient='index' to create the DataFrame using dictionary keys as rows:
+
+data = {'row_1': [3, 2, 1, 0], 'row_2': ['a', 'b', 'c', 'd']}
+pd.DataFrame.from_dict(data, orient='index')
+
+#When using the ‘index’ orientation, the column names can be specified manually:
+data = {'row_1': [3, 2, 1, 0], 'row_2': ['a', 'b', 'c', 'd']}
+pd.DataFrame.from_dict(data, orient='index', columns=['A', 'B', 'C', 'D'])
+
+
+data = {'Student Name': ['John', 'Emma', 'Mike'],
+
+     'Age': [25, 28, 32],
+
+     'Location': ['New York', 'London', 'Paris']}
+
+# Convert dictionary to DataFrame
+
+df = pd.DataFrame.from_dict(data)
+
+# Print the DataFrame
+
+print(df)
+
+
