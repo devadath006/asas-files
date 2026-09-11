@@ -1,0 +1,192 @@
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+python -m venv venv
+.\venv\Scripts\Activate
+django-admin startproject myblog .
+python manage.py startapp blog
+///////////////////////////////////
+Add blog app to the INSTALLED_APPS list in myblog/settings.py
+# myblog/settings.py
+INSTALLED_APPS = [
+    # ... default apps ...
+    'blog',
+]
+//////////////////////////////////////
+Define the data structure for your blog posts in blog/models.py.
+# blog/models.py
+from django.db import models
+from django.utils import timezone
+from django.urls import reverse
+
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
+    body = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('post_detail', kwargs={'pk': self.pk})
+
+
+/////////////////////////////////////////////////
+Create a form to allow users to create and update blog posts using Django's ModelForm. 
+Create a new file named blog/forms.py:
+# blog/forms.py
+from django import forms
+from .models import Post
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'slug', 'body']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'slug': forms.TextInput(attrs={'class': 'form-control'}),
+            'body': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+        }
+
+/////////////////////////////////////
+Write the views to handle listing posts, viewing post details, creating posts, and editing posts in blog/views.py.
+# blog/views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Post
+from .forms import PostForm
+
+def post_list(request):
+    posts = Post.objects.all().order_by('-created_at')
+    return render(request, 'blog/post_list.html', {'posts': posts})
+
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    return render(request, 'blog/post_detail.html', {'post': post})
+
+def post_create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('post_list')
+    else:
+        form = PostForm()
+    return render(request, 'blog/post_form.html', {'form': form})
+
+def post_edit(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm(instance=post)
+    return render(request, 'blog/post_form.html', {'form': form})
+
+
+///////////////////////////////////////////////
+Django expects templates to be inside a directory structure like blog/templates/blog/. Create these folders inside your blog app directory.
+
+1. Base Layout (blog/templates/blog/base.html)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Django Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'post_list' %}">Django Blog</a>
+            <a href="{% url 'post_create' %}" class="btn btn-outline-light btn-sm">New Post</a>
+        </div>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
+
+//////////////////////////////////////////
+2. Post List (blog/templates/blog/post_list.html)
+
+{% extends 'blog/base.html' %}
+{% block content %}
+    <h2>Recent Posts</h2>
+    <hr>
+    {% for post in posts %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <h3><a href="{% url 'post_detail' post.pk %}" class="text-decoration-none">{{ post.title }}</a></h3>
+                <p class="text-muted"><small>Published on {{ post.created_at }}</small></p>
+                <p>{{ post.body|truncatewords:30 }}</p>
+            </div>
+        </div>
+    {% empty %}
+        <p>No posts available.</p>
+    {% endfor %}
+{% endblock %}
+
+//////////////////////////////////////
+3. Post Detail (blog/templates/blog/post_detail.html)
+{% extends 'blog/base.html' %}
+{% block content %}
+    <div class="card shadow-sm p-4">
+        <h2>{{ post.title }}</h2>
+        <p class="text-muted"><small>Published on {{ post.created_at }}</small></p>
+        <hr>
+        <p>{{ post.body|linebreaks }}</p>
+        <div class="mt-3">
+            <a href="{% url 'post_edit' post.pk %}" class="btn btn-secondary btn-sm">Edit Post</a>
+            <a href="{% url 'post_list' %}" class="btn btn-dark btn-sm">Back to Home</a>
+        </div>
+    </div>
+{% endblock %}
+
+//////////////////////////////////////////
+4. Post Form (blog/templates/blog/post_form.html)
+{% extends 'blog/base.html' %}
+{% block content %}
+    <div class="card shadow-sm p-4 col-md-8 mx-auto">
+        <h2>Create / Edit Post</h2>
+        <hr>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Save Post</button>
+            <a href="{% url 'post_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+{% endblock %}
+
+///////////////////////////////////////
+Configure URLs
+Set up URL routing for the blog. First, create blog/urls.py:
+# blog/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.post_list, name='post_list'),
+    path('post/<int:pk>/', views.post_detail, name='post_detail'),
+    path('post/new/', views.post_create, name='post_create'),
+    path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
+]
+/////////////////////////////////
+Then, include the blog URLs in your main project's myblog/urls.py:
+
+# myblog/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('blog.urls')),
+]
+//////////////////////////////
+In the terminal
+
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
